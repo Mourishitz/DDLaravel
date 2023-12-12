@@ -5,6 +5,10 @@
     "dev": "vite",
     "build": "vite build"
   },
+  "bun-create": {
+    "preinstall": "echo 'Installing dependencies with Bun and Composer...'",
+    "postinstall": ["composer install", "echo 'Done!'"]
+  },
   "devDependencies": {
     "axios": "^1.6.1",
     "laravel-vite-plugin": "^0.8.0",
