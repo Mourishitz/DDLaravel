@@ -10,11 +10,10 @@ class UserRouter implements RouterInterface
 {
     private const CONTROLLER = UserController::class;
 
-
     public static function routes(Router $api): void
     {
-        $api->group(['prefix' => 'userss'], function (Router $api) {
-            $api->put('/', self::CONTROLLER, 'index');
+        $api->group(['prefix' => 'testee'], function (Router $api) {
+            $api->put('/usert', [self::CONTROLLER, 'index']);
         });
     }
 

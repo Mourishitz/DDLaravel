@@ -8,7 +8,6 @@ use App\Core\Interfaces\ModuleInterface;
 
 class ApplicationModules extends ServiceProvider
 {
-
     private const MODULES = [
         User\UserModule::class,
     ];
@@ -20,8 +19,7 @@ class ApplicationModules extends ServiceProvider
     {
         Arr::map(self::MODULES, function (string $module) {
             /** @var ModuleInterface $module */
-            $this->app->bind($module::interface());
-            $this->app->bind($module::repository());
+            $this->app->bind($module::interface(), $module::repository());
         });
     }
 }
