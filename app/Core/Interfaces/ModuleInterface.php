@@ -8,4 +8,3 @@ interface ModuleInterface
 
     public static function repository(): string;
 }
-

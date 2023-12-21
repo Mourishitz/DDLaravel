@@ -2,15 +2,13 @@
 
 namespace App\Modules;
 
+use App\Core\Interfaces\ModuleInterface;
 use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
-use App\Core\Interfaces\ModuleInterface;
 
 class ApplicationModules extends ServiceProvider
 {
-    private const MODULES = [
-        User\UserModule::class,
-    ];
+    private const MODULES = [];
 
     /**
      * Register application Modules.
