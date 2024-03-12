@@ -1,0 +1,24 @@
+# Development
+.git
+.github
+docs
+tests
+.editorconfig
+.env.example
+.gitattributes
+.gitignore
+phpunit.xml
+pint.json
+README.md
+vite.config.js
+Makefile
+
+# Development Scripts
+app/Core/Scripts/ModuleBuilder.php
+docker/dev/database/data
+
+# Dependency
+composer.lock
+node_modules
+vendor
+

@@ -2,20 +2,42 @@
 
 namespace App\Core\Repositories;
 
+use App\Core\Enums\ResponseEnum;
+use App\Core\Exceptions\RepositoryException;
 use App\Core\Interfaces\RepositoryInterface;
+use Closure;
+use Exception;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * BaseRepository
+ */
 class CoreRepository implements RepositoryInterface
 {
-    public Builder $query;
-
-    protected $model;
+    protected string $model;
 
     protected array $with = [];
 
-    public function __construct(string $model)
+    public function __construct(?string $model = null)
     {
-        $this->model = $model;
+        if ($model !== null) {
+            $this->model = $model;
+        }
+    }
+
+    protected function newQuery(): Builder
+    {
+        return $this->model()
+            ->newQuery();
     }
 
     public function model(): mixed
@@ -23,90 +45,265 @@ class CoreRepository implements RepositoryInterface
         return app($this->model);
     }
 
-    protected function newQuery(): Builder
+    final public function getFillable(): array
     {
-        $this->query = $this->model()->newQuery();
-
-        return $this->query;
+        return $this->model()->getFillable();
     }
 
-    public function all()
+    public function setQuery(Builder $query): self
     {
-        return $this->model::with($this->with)->get();
+        $this->query = $query;
+
+        return $this;
     }
 
-    public function findAll(?array $appends = [])
-    {
-        // Implement the findAll method
+    /**
+     * @return SupportCollection|LengthAwarePaginator|Builder[]|Collection
+     */
+    protected function doQuery(
+        ?Builder $query = null,
+        bool $paginate = false,
+        ?int $limit = null,
+        ?array $appends = null
+    ): SupportCollection|Collection|LengthAwarePaginator|array {
+        if (is_null($query)) {
+            $query = $this->newQuery();
+        }
+
+        if (! empty($this->with)) {
+            $query->with($this->with);
+        }
+
+        if ($paginate) {
+            return $query
+                ->paginate($limit ?: 15)
+                ->appends($appends);
+        }
+
+        if ($limit !== null) {
+            $query->take($limit);
+        }
+
+        return $query->get();
     }
 
-    public function findByID($id)
+    public function findAll(?array $appends = null): SupportCollection|Collection|LengthAwarePaginator|array
     {
-        // Implement the findByID method
+        return $this->doQuery(null, false, null, $appends);
     }
 
-    public function findBy($field, $value)
-    {
-        // Implement the findBy method
+    /**
+     * @param  array|string[]  $columns
+     *
+     * @throws RepositoryException
+     */
+    public function findByID(
+        int $id,
+        array $columns = ['*'],
+        ?bool $fail = true,
+        ?bool $withTrashed = false,
+    ): ?Model {
+        $query = $this->newQuery()->with($this->with);
+
+        if ($withTrashed) {
+            /** @phpstan-ignore-next-line **/
+            $query->withTrashed();
+        }
+
+        if ($fail) {
+            try {
+                return $query->findOrFail($id, $columns);
+            } catch (ModelNotFoundException $e) {
+                throw new RepositoryException(
+                    message: ResponseEnum::RESOURCE_NOT_FOUND->label(),
+                    code: Response::HTTP_NOT_FOUND,
+                    previous: $e
+                );
+            }
+        }
+
+        return $query->find($id, $columns);
     }
 
-    public function create($data)
+    /**
+     * @param  array|string[]  $columns
+     *
+     * @throws RepositoryException
+     */
+    public function findBy(string $attribute, $value, array $columns = ['*'], bool $cachedResults = false): ?Model
     {
-        // Implement the create method
+        try {
+            if ($cachedResults) {
+                return $this->findByCached($attribute, $value, $columns);
+            }
+
+            return $this->newQuery()
+                ->with($this->with)
+                ->where($attribute, '=', $value)
+                ->first($columns);
+        } catch (Exception|QueryException $e) {
+            throw new RepositoryException(
+                message: ResponseEnum::RESOURCE_NOT_FOUND->label(),
+                code: Response::HTTP_NOT_FOUND,
+                previous: $e
+            );
+        }
     }
 
-    public function firstOrCreate($data)
+    /**
+     * @param  array|string[]  $columns
+     */
+    private function findByCached(string $attribute, mixed $value, array $columns = ['*']): ?Model
     {
-        // Implement the firstOrCreate method
+        return Cache::rememberForever($this->model.$value, function () use ($attribute, $value, $columns) {
+            return $this->newQuery()
+                ->with($this->with)
+                ->where($attribute, '=', $value)
+                ->first($columns);
+        });
     }
 
-    public function update($id, $data)
+    /**
+     * @throws RepositoryException
+     */
+    public function create(array $data, bool $loadRelationships = true): Model
     {
-        // Implement the update method
+        try {
+            $fillableData = $this->getFillableData($data);
+
+            $query = $this->newQuery()->create($fillableData);
+
+            if ($loadRelationships) {
+                $query->load($this->with);
+            }
+
+            return $query;
+        } catch (Exception|QueryException $e) {
+            throw new RepositoryException(
+                message: ResponseEnum::FAILED_REGISTER->label(),
+                code: Response::HTTP_INTERNAL_SERVER_ERROR,
+                previous: $e
+            );
+        }
     }
 
-    public function delete($id)
+    public function firstOrCreate(array $data, bool $loadRelationships = false): Model
     {
-        // Implement the delete method
+        $object = $this->newQuery()->firstOrCreate($data);
+
+        if ($loadRelationships) {
+            $object->load($this->with);
+        }
+
+        return $object;
     }
 
-    public function with($relations)
+    /**
+     * @throws Exception
+     */
+    public function update(array $data, int $id): bool
     {
-        // Implement the with method
+        try {
+            $fillableData = $this->getFillableData($data);
+
+            $object = $this->findByID($id, ['id']);
+
+            return $object?->update($fillableData);
+        } catch (QueryException $e) {
+            throw new RepositoryException(
+                message: ResponseEnum::BAD_REQUEST->label(),
+                code: Response::HTTP_BAD_REQUEST,
+                previous: $e
+            );
+        }
     }
 
-    public function first()
+    /**
+     * @throws Exception
+     */
+    public function delete(int $id): ?bool
     {
-        // Implement the first method
+        $object = $this->findByID($id, ['*']);
+
+        return $object?->delete();
     }
 
-    public function existsBy($field, $value)
+    public function with(array $with = []): static
     {
-        // Implement the existsBy method
+        $this->with = $with;
+
+        return $this;
     }
 
-    public function where($field, $operator, $value)
+    /**
+     * @param  array|string[]  $columns
+     */
+    public function first(array $columns = ['*']): ?Model
     {
-        // Implement the where method
+        $query = $this->newQuery()->first($columns);
+
+        if ($query) {
+            return $query->load($this->with);
+        }
+
+        return $query;
     }
 
-    public function whereDoesntHave($relation)
-    {
-        // Implement the whereDoesntHave method
+    public function existsBy(
+        string $attribute,
+        $value,
+        ?string $with = null
+    ): bool {
+        $query = $this->newQuery();
+
+        if (! empty($with)) {
+            return $query->whereHas($with, function ($q) use ($attribute, $value) {
+                $q->where($attribute, $value);
+            })->exists();
+        }
+
+        return $query->where($attribute, '=', $value)->exists();
     }
 
-    public function whereIn($field, $values)
-    {
-        // Implement the whereIn method
+    /**
+     * @param  null  $operator
+     */
+    public function where(
+        array|Closure|string $column,
+        $operator = null,
+        mixed $value = null,
+        string $boolean = 'and'
+    ): Builder {
+        return $this->newQuery()->where($column, $operator, $value, $boolean);
     }
 
-    public function count()
-    {
-        // Implement the count method
+    public function whereDoesntHave(
+        string $relation,
+        ?Closure $callback = null
+    ): Builder {
+        return $this->newQuery()->doesntHave($relation, 'and', $callback);
     }
 
-    public function getFillableData($data)
+    public function whereIn($column, array $value = []): Builder
     {
-        // Implement the getFillableData method
+        return $this->newQuery()->whereIn($column, $value);
+    }
+
+    public function count(): int
+    {
+        return $this->newQuery()->count();
+    }
+
+    public function getFillableData(array $data): array
+    {
+        return Arr::only($data, $this->getFillable());
+    }
+
+    /**
+     * Set the columns to be selected.
+     */
+    public function select(array|string $columns = ['*']): Builder
+    {
+        return $this->newQuery()->select($columns);
     }
 }

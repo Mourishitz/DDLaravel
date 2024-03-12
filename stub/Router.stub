@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Api\Modules\{{ ModuleName }}\Routers;
+
+use App\Api\Modules\{{ ModuleName }}\Controllers\{{ ModuleName }}Controller;
+use App\Core\Interfaces\RouterInterface;
+use Illuminate\Routing\Router;
+
+class {{ ModuleName }}Router implements RouterInterface
+{
+    private const CONTROLLER = {{ ModuleName }}Controller::class;
+
+    public static function routes(Router $router): void
+    {
+        $router->group(['prefix' => '{{ RouterPrefix }}'], function (Router $api) {
+            $api->post('/', [self::CONTROLLER, 'all']);
+        });
+    }
+}

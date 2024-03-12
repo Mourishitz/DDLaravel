@@ -53,9 +53,12 @@ class RouteFactory
      */
     private function makeMiddlewareRoute(array $routes)
     {
-        return $this->api->group($this->middleware, function () use ($routes) {
-            $this->makeRoutes($routes);
-        });
+        return $this->api->group(
+            $this->middleware,
+            function () use ($routes) {
+                $this->makeRoutes($routes);
+            }
+        );
     }
 
     /**

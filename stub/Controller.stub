@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Api\Modules\{{ ModuleName }}\Controllers;
+
+class {{ ModuleName }}Controller
+{
+    public function __construct(
+        protected {{ ModuleName }}RepositoryInterface $repository,
+    ) {
+    }
+
+    public function getAll()
+    {
+        return $this->repository->all();
+    }
+
+    public function create()
+    {
+
+    }
+}

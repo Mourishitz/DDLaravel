@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Api\Modules\{{ ModuleName }}\Repositories;
+
+use App\Api\Modules\{{ ModuleName }}\Repositories\{{ ModuleName }}RepositoryInterface;
+use App\Api\Modules\{{ ModuleName }}\Models\{{ ModuleName }}Model;
+use Illuminate\Support\Collection;
+
+class {{ ModuleName }}Repository implements {{ ModuleName }}RepositoryInterface
+{
+    public function all(): Collection {
+      return {{ ModuleName }}Model::all();
+    }
+}

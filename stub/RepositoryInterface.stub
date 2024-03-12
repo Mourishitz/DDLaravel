@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Api\Modules\{{ ModuleName }}\Interfaces;
+
+use App\Core\Interfaces\RepositoryInterface;
+use Illuminate\Support\Collection;
+
+interface UserRepositoryInterface extends RepositoryInterface
+{
+    public function all(): Collection;
+}
