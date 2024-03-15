@@ -1,0 +1,33 @@
+2024-03-14 13:16:16,677 INFO Set uid to user 0 succeeded
+2024-03-14 13:16:16,678 INFO supervisord started with pid 13
+2024-03-14 13:16:17,681 INFO spawned: 'laravel-octane_00' with pid 14
+2024-03-14 13:16:18,379 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:16:19,382 INFO spawned: 'laravel-octane_00' with pid 52
+2024-03-14 13:16:20,048 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:16:22,053 INFO spawned: 'laravel-octane_00' with pid 92
+2024-03-14 13:16:22,736 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:16:25,742 INFO spawned: 'laravel-octane_00' with pid 133
+2024-03-14 13:16:26,389 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:16:27,391 INFO gave up: laravel-octane_00 entered FATAL state, too many start retries too quickly
+2024-03-14 13:19:34,309 INFO Set uid to user 0 succeeded
+2024-03-14 13:19:34,310 INFO supervisord started with pid 13
+2024-03-14 13:19:35,313 INFO spawned: 'laravel-octane_00' with pid 14
+2024-03-14 13:19:35,999 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:19:37,003 INFO spawned: 'laravel-octane_00' with pid 51
+2024-03-14 13:19:37,699 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:19:39,702 INFO spawned: 'laravel-octane_00' with pid 92
+2024-03-14 13:19:40,341 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:19:43,347 INFO spawned: 'laravel-octane_00' with pid 131
+2024-03-14 13:19:43,999 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:19:45,000 INFO gave up: laravel-octane_00 entered FATAL state, too many start retries too quickly
+2024-03-14 13:20:59,379 INFO Set uid to user 0 succeeded
+2024-03-14 13:20:59,380 INFO supervisord started with pid 13
+2024-03-14 13:21:00,384 INFO spawned: 'laravel-octane_00' with pid 14
+2024-03-14 13:21:01,033 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:21:02,037 INFO spawned: 'laravel-octane_00' with pid 54
+2024-03-14 13:21:02,688 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:21:04,692 INFO spawned: 'laravel-octane_00' with pid 94
+2024-03-14 13:21:05,366 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:21:08,372 INFO spawned: 'laravel-octane_00' with pid 135
+2024-03-14 13:21:09,047 WARN exited: laravel-octane_00 (exit status 1; not expected)
+2024-03-14 13:21:10,048 INFO gave up: laravel-octane_00 entered FATAL state, too many start retries too quickly

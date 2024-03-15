@@ -10,8 +10,8 @@ configure: ## Installs dependencies and env configurations
 	php artisan octane:install --server=frankenphp
 
 build: ## Starts development server
-	docker build -f ./docker/development/Dockerfile -t development-laravel-container .
-	docker run --name 'laravel-dev' -p 80:80 --rm -v $(PWD):/var/www/app development-laravel-container
+	docker build -f ./docker/dev/Dockerfile -t development-laravel-container .
+	docker run --name 'laravel-dev' -p 8089:8089 --rm -v $(PWD):/var/www/app development-laravel-container
 
 dev: ## Starts development server
 	php artisan octane:start --host=0.0.0.0 --max-requests=3000 --workers=4 --task-workers=12 --port=8089 --watch

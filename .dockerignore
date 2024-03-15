@@ -2,7 +2,6 @@
 .git
 .github
 docs
-tests
 .editorconfig
 .env.example
 .gitattributes

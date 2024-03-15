@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp
+FROM dunglas/frankenphp as php-builder
 
 RUN apt-get update &&\
     apt-get install -y git \
@@ -11,8 +11,8 @@ RUN install-php-extensions pcntl sockets pdo_pgsql zip
 # Get latest Composer
 COPY --from=composer:2.6.6 /usr/bin/composer /usr/bin/composer
 
-# Get latest bun
-FROM oven/bun as bun
+# Get latest Bun
+COPY --from=oven/bun:latest /usr/local/bin/bun /usr/local/bin/bun
 
 # Setting workdir
 ADD . /var/www/app
@@ -24,7 +24,7 @@ COPY docker/dev/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN rm -rf /var/cache/apk/*
 
 # Install dependencies
-RUN bun install
+RUN bun install chokidar
 RUN composer install
 
 EXPOSE 8089
